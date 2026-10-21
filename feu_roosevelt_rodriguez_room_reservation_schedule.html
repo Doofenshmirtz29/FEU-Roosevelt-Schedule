@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FEU Roosevelt Rodriguez - Room Reservation Schedule</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Inter & JetBrains Mono Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .expand-transition {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-[#f7b928] selection:text-[#06381b]">
+
+  <!-- Top Header Bar with FEU Roosevelt Rodriguez Branding -->
+  <header class="relative w-full bg-gradient-to-r from-[#06381b] via-[#0b4d26] to-[#06381b] text-white border-b-4 border-[#f7b928] shadow-md z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand & Campus Name -->
+      <div class="flex items-center gap-3">
+        <!-- FEU Tamaraw Logo Shield -->
+        <div class="w-11 h-11 rounded-2xl bg-[#06381b] border-2 border-[#f7b928] flex items-center justify-center shadow-md p-1.5 flex-shrink-0">
+          <svg viewBox="0 0 100 100" class="w-full h-full fill-[#f7b928]">
+            <path d="M50 10 C32 10 20 22 18 38 C16 54 26 70 34 82 C42 92 50 96 50 96 C50 96 58 92 66 82 C74 70 84 54 82 38 C80 22 68 10 50 10 Z M50 24 C58 24 64 28 66 35 C59 38 50 42 50 42 C50 42 41 38 34 35 C36 28 42 24 50 24 Z M35 52 C35 52 42 56 50 56 C58 56 65 52 65 52 C65 62 58 72 50 78 C42 72 35 62 35 52 Z"/>
+            <path d="M12 28 C16 18 26 12 36 12 C34 16 33 22 34 26 C26 26 18 27 12 28 Z"/>
+            <path d="M88 28 C84 18 74 12 64 12 C66 16 67 22 66 26 C74 26 82 27 88 28 Z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg sm:text-xl font-bold tracking-tight text-white leading-tight">FEU ROOSEVELT RODRIGUEZ</h1>
+            <span class="hidden sm:inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-[#f7b928] text-[#06381b] shadow-sm">TAMARAWS</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <p class="text-xs text-amber-200/90 font-medium tracking-wide">Room &amp; Facility Reservation Scheduling System</p>
+            <span class="text-emerald-400/40 text-xs">•</span>
+            <span id="syncIndicator" class="inline-flex items-center gap-1.5 text-[10px] font-bold text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/30">
+              <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="syncText">Connecting Cloud...</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="flex items-center gap-2">
+        <!-- Hidden file input for restore -->
+        <input type="file" id="backupFileInput" accept=".json" class="hidden">
+        
+        <button id="btnBackupData" type="button" class="inline-flex items-center gap-1.5 bg-emerald-900/60 hover:bg-emerald-900 text-amber-200 hover:text-white border border-emerald-700/60 text-xs font-semibold px-2.5 py-2 rounded-xl transition shadow-sm" title="Download backup JSON copy">
+          <i class="fa-solid fa-download text-[11px]"></i>
+          <span class="hidden md:inline">Backup</span>
+        </button>
+
+        <button id="btnRestoreData" type="button" class="inline-flex items-center gap-1.5 bg-emerald-900/60 hover:bg-emerald-900 text-amber-200 hover:text-white border border-emerald-700/60 text-xs font-semibold px-2.5 py-2 rounded-xl transition shadow-sm" title="Restore reservations from JSON file">
+          <i class="fa-solid fa-upload text-[11px]"></i>
+          <span class="hidden md:inline">Restore</span>
+        </button>
+
+        <button id="btnQuickAddSchedule" type="button" class="inline-flex items-center gap-2 bg-[#f7b928] hover:bg-[#ffc83b] text-[#06381b] font-black text-xs sm:text-sm px-4 py-2.5 rounded-xl transition shadow-md active:scale-95 border border-amber-300">
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>Add Reservation</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 space-y-6">
+
+    <!-- Month & Academic Year Selection Controls + Statistics -->
+    <div class="bg-white rounded-2xl border-2 border-emerald-900/10 p-4 sm:p-5 shadow-sm">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        
+        <!-- Dropdown selectors -->
+        <div class="flex flex-wrap items-center gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-[#06381b] uppercase tracking-wider mb-1">Select Month</label>
+            <div class="relative">
+              <select id="monthSelect" class="appearance-none bg-slate-50 border border-slate-300 text-slate-800 text-sm font-semibold rounded-xl px-3 py-2 pr-8 focus:ring-2 focus:ring-[#f7b928] focus:border-[#0b4d26] outline-none transition cursor-pointer shadow-sm">
+                <!-- Dynamically populated -->
+              </select>
+              <i class="fa-solid fa-chevron-down text-xs text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-[#06381b] uppercase tracking-wider mb-1">Academic Year</label>
+            <div class="relative">
+              <select id="yearSelect" class="appearance-none bg-slate-50 border border-slate-300 text-slate-800 text-sm font-semibold rounded-xl px-3 py-2 pr-8 focus:ring-2 focus:ring-[#f7b928] focus:border-[#0b4d26] outline-none transition cursor-pointer shadow-sm">
+                <!-- Dynamically populated 2026 to 2100 -->
+              </select>
+              <i class="fa-solid fa-chevron-down text-xs text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            </div>
+          </div>
+
+          <!-- Clear Month Reservations Button -->
+          <div class="pt-5">
+            <button id="btnClearMonthBtn" type="button" class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 text-xs font-bold px-3 py-2 rounded-xl transition shadow-sm active:scale-95" title="Clear all bookings for this selected month">
+              <i class="fa-solid fa-calendar-xmark text-xs"></i>
+              <span>Clear This Month</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div class="bg-emerald-50/70 border border-emerald-200/80 rounded-xl px-3.5 py-2 text-center">
+            <span class="block text-[10px] uppercase font-bold text-emerald-800 tracking-wider">Days in Month</span>
+            <span id="statDaysCount" class="text-base sm:text-lg font-black text-[#06381b]">31</span>
+          </div>
+          <div class="bg-amber-50/80 border border-amber-300/80 rounded-xl px-3.5 py-2 text-center">
+            <span class="block text-[10px] uppercase font-bold text-amber-900 tracking-wider">Month Bookings</span>
+            <span id="statMonthBookingsCount" class="text-base sm:text-lg font-black text-[#06381b]">0</span>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-center col-span-2 sm:col-span-1">
+            <span class="block text-[10px] uppercase font-bold text-slate-500 tracking-wider">Selected Year</span>
+            <span id="statActiveYearLabel" class="text-base sm:text-lg font-black text-slate-800">2026</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Calendar Table Section (Sun to Sat) with FEU Theme -->
+    <div id="daysSection" class="space-y-2">
+      <div class="flex items-center justify-between text-xs text-slate-600 px-1">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-calendar-check text-[#0b4d26]"></i>
+          <span class="font-bold text-[#06381b]">Select a Date to View or Add Reservations:</span>
+        </div>
+        <div class="flex items-center gap-3 text-[11px] font-semibold">
+          <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-[#f7b928] border border-amber-500 inline-block"></span> Reserved</span>
+          <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-100 border border-emerald-300 inline-block"></span> Open</span>
+        </div>
+      </div>
+
+      <!-- Calendar Table formatted in FEU Green & Gold -->
+      <div class="border-2 border-[#0b4d26]/20 rounded-xl overflow-hidden shadow-sm bg-white">
+        <!-- Top month title bar with FEU Green & Gold -->
+        <div id="calendarMonthHeader" class="bg-gradient-to-r from-[#06381b] via-[#0b4d26] to-[#06381b] text-[#f7b928] font-black text-center py-2.5 text-sm sm:text-base border-b-2 border-[#f7b928] tracking-wider uppercase flex items-center justify-center gap-2 shadow-sm">
+          <i class="fa-solid fa-calendar-days text-sm text-[#f7b928]"></i>
+          <span>October 2026</span>
+        </div>
+
+        <!-- 7-column Sun to Sat table structure styled with FEU palette -->
+        <table class="w-full border-collapse table-fixed">
+          <thead>
+            <tr class="bg-emerald-900/10 text-[#06381b] text-xs sm:text-sm font-black border-b-2 border-emerald-900/20">
+              <th class="py-2.5 text-center border-r border-emerald-900/15 text-rose-600 w-[14.28%]">Sun</th>
+              <th class="py-2.5 text-center border-r border-emerald-900/15 w-[14.28%]">Mon</th>
+              <th class="py-2.5 text-center border-r border-emerald-900/15 w-[14.28%]">Tue</th>
+              <th class="py-2.5 text-center border-r border-emerald-900/15 w-[14.28%]">Wed</th>
+              <th class="py-2.5 text-center border-r border-emerald-900/15 w-[14.28%]">Thu</th>
+              <th class="py-2.5 text-center border-r border-emerald-900/15 w-[14.28%]">Fri</th>
+              <th class="py-2.5 text-center text-emerald-800/70 w-[14.28%]">Sat</th>
+            </tr>
+          </thead>
+          <tbody id="calendarGridBody" class="divide-y divide-emerald-900/10 bg-white">
+            <!-- Dynamically populated rows and dates -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EXPANDED DRAWER (Matches handwritten sketch format + FEU Green & Gold) -->
+    <div id="expandedDrawer" class="hidden expand-transition">
+      <div class="bg-white rounded-2xl border-2 border-[#0b4d26] shadow-xl overflow-hidden ring-4 ring-amber-300/40">
+        
+        <!-- Drawer Top Bar with FEU Green & Back Button -->
+        <div class="bg-gradient-to-r from-[#06381b] via-[#0b4d26] to-[#06381b] text-white px-5 py-4 flex flex-wrap items-center justify-between gap-3 border-b-2 border-[#f7b928]">
+          <div class="flex items-center gap-3">
+            <button id="btnBackToDays" type="button" class="group inline-flex items-center gap-2 bg-[#f7b928] hover:bg-[#ffc83b] text-[#06381b] px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition shadow-md border border-amber-300 active:scale-95">
+              <i class="fa-solid fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
+              <span>Back to Month &amp; Dates</span>
+            </button>
+            <div class="h-6 w-px bg-white/20 hidden sm:block"></div>
+            <div>
+              <span class="text-[10px] uppercase tracking-widest font-mono text-[#f7b928] font-bold block">Selected Schedule Sheet</span>
+              <h3 id="expandedDateDisplay" class="text-lg sm:text-xl font-bold text-white tracking-tight">October 22, 2026</h3>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <!-- Clear specific day button -->
+            <button id="btnClearDayBtn" type="button" class="inline-flex items-center gap-1.5 bg-rose-600/90 hover:bg-rose-600 text-white font-bold text-xs sm:text-sm px-3 py-2 rounded-xl shadow-sm transition active:scale-95 border border-rose-400">
+              <i class="fa-solid fa-trash-can text-xs"></i>
+              <span class="hidden sm:inline">Clear Day</span>
+            </button>
+            <button id="btnAddRowBtn" type="button" class="inline-flex items-center gap-1.5 bg-[#f7b928] hover:bg-[#ffc83b] text-[#06381b] font-black text-xs sm:text-sm px-3.5 py-2 rounded-xl shadow-md transition active:scale-95 border border-amber-300">
+              <i class="fa-solid fa-plus text-xs"></i>
+              <span>Add Reservation</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Handwritten Layout Replicated: # / ROOM / PEOPLE / TIME / DATE / REASON -->
+        <div class="p-4 sm:p-6 bg-emerald-950/5">
+          <div class="bg-white border-2 border-emerald-900/20 rounded-xl overflow-hidden shadow-sm">
+            
+            <!-- Table Header Banner with Tamaraw Tag -->
+            <div class="bg-[#06381b] px-4 py-2.5 flex items-center justify-between text-white border-b-2 border-[#f7b928]">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold tracking-widest text-[#f7b928] uppercase font-mono">FEU RESERVATION LOG</span>
+                <span class="text-emerald-300/50 font-bold">|</span>
+                <span id="expandedSheetDateHeader" class="text-xs font-mono font-bold text-emerald-100">DATE: 10/22/2026</span>
+              </div>
+              <span class="text-[11px] text-[#f7b928] font-mono font-bold">FEU ROOSEVELT FACILITY MANAGEMENT</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs sm:text-sm border-collapse">
+                <thead>
+                  <tr class="bg-emerald-50/70 text-[#06381b] font-bold border-b-2 border-emerald-200 text-xs">
+                    <th class="py-3 px-3 text-center w-12 border-r border-emerald-200 bg-emerald-100/60">#</th>
+                    <th class="py-3 px-4 min-w-[160px] border-r border-emerald-200 text-rose-600 font-bold tracking-wide uppercase">ROOM</th>
+                    <th class="py-3 px-3 text-center min-w-[100px] border-r border-emerald-200 text-rose-600 font-bold tracking-wide uppercase">PEOPLE</th>
+                    <th class="py-3 px-4 min-w-[140px] border-r border-emerald-200 text-rose-600 font-bold tracking-wide uppercase">TIME</th>
+                    <th class="py-3 px-4 min-w-[120px] border-r border-emerald-200 text-rose-600 font-bold tracking-wide uppercase">DATE</th>
+                    <th class="py-3 px-4 min-w-[200px] border-r border-emerald-200 text-rose-600 font-bold tracking-wide uppercase">REASON</th>
+                    <th class="py-3 px-3 text-center w-28 text-slate-600">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody id="expandedTableBody" class="divide-y divide-emerald-100 font-mono">
+                  <!-- Dynamically generated rows 1, 2, 3, 4, 5... -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer hint inside table with FTS - Property label -->
+            <div class="bg-emerald-50/40 p-3 border-t border-emerald-200 text-[11px] text-[#06381b] flex flex-wrap items-center justify-between gap-2 font-medium">
+              <span>Click on any empty slot or the "Add Reservation" button to schedule a room immediately.</span>
+              <span class="inline-flex items-center text-emerald-800 font-semibold"><i class="fa-solid fa-shield-halved text-[11px] text-[#0b4d26] mr-1.5"></i>FTS - Property</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Master Schedule History Table -->
+    <div class="bg-white rounded-2xl border-2 border-emerald-900/10 p-5 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+        <div>
+          <h3 class="text-base font-bold text-[#06381b] flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-[#f7b928] text-base"></i>
+            <span>All University Reservations Log</span>
+          </h3>
+          <p class="text-xs text-slate-500 font-normal">Master schedule record across all months and academic years.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Month vs All Toggle Scope -->
+          <div class="inline-flex rounded-xl bg-slate-100 p-0.5 border border-slate-200">
+            <button type="button" id="btnScopeMonth" class="px-2.5 py-1 text-xs font-bold rounded-lg transition bg-white text-[#06381b] shadow-sm">
+              <span id="labelCurrentMonthScope">This Month</span>
+            </button>
+            <button type="button" id="btnScopeAll" class="px-2.5 py-1 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-800">
+              All Records
+            </button>
+          </div>
+
+          <div class="relative">
+            <input type="text" id="allBookingsSearch" placeholder="Search room, date, purpose..." class="text-xs bg-slate-50 border border-slate-300 rounded-xl pl-8 pr-8 py-2 w-full sm:w-64 focus:ring-2 focus:ring-[#f7b928] focus:border-[#0b4d26] outline-none">
+            <i class="fa-solid fa-magnifying-glass text-xs text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2"></i>
+            <button id="btnClearSearch" type="button" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition" title="Clear search">
+              <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+          </div>
+
+          <button id="btnClearAllBtn" type="button" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 border border-slate-300 text-slate-600 text-xs font-bold px-3 py-2 rounded-xl transition">
+            <i class="fa-solid fa-trash-arrow-up"></i>
+            <span>Reset All</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Room Filter Pills -->
+      <div class="flex flex-wrap items-center gap-1.5 mb-3">
+        <span class="text-[11px] font-bold text-slate-500 mr-1">Quick Filter:</span>
+        <button type="button" onclick="quickFilterRoom('')" class="room-pill px-2.5 py-1 rounded-lg bg-emerald-900 text-[#f7b928] font-bold text-[11px] border border-emerald-800 transition active:scale-95 shadow-sm">All Rooms</button>
+        <button type="button" onclick="quickFilterRoom('Room 401')" class="room-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 font-semibold text-[11px] border border-slate-200 transition active:scale-95">Room 401</button>
+        <button type="button" onclick="quickFilterRoom('Auditorium')" class="room-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 font-semibold text-[11px] border border-slate-200 transition active:scale-95">Auditorium</button>
+        <button type="button" onclick="quickFilterRoom('Arts Building')" class="room-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 font-semibold text-[11px] border border-slate-200 transition active:scale-95">Arts Building</button>
+        <button type="button" onclick="quickFilterRoom('Gym')" class="room-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 font-semibold text-[11px] border border-slate-200 transition active:scale-95">Gym</button>
+        <button type="button" onclick="quickFilterRoom('AVR')" class="room-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 font-semibold text-[11px] border border-slate-200 transition active:scale-95">AVR</button>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-emerald-900/15">
+        <table class="w-full text-left text-xs sm:text-sm">
+          <thead class="bg-emerald-50 text-[#06381b] font-bold border-b border-emerald-200">
+            <tr>
+              <th class="py-3 px-3 text-center w-12">#</th>
+              <th class="py-3 px-4">Room / Hall</th>
+              <th class="py-3 px-3 text-center">Pax</th>
+              <th class="py-3 px-4">Date</th>
+              <th class="py-3 px-4">Time Slot</th>
+              <th class="py-3 px-4">Reason / Purpose</th>
+              <th class="py-3 px-3 text-center w-28">Action</th>
+            </tr>
+          </thead>
+          <tbody id="masterTableBody" class="divide-y divide-slate-100">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Reservation Input / Edit Modal -->
+  <div id="bookingModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border-2 border-[#0b4d26] transform transition-all">
+      
+      <div class="bg-gradient-to-r from-[#06381b] to-[#0b4d26] text-white px-5 py-4 flex items-center justify-between border-b-2 border-[#f7b928]">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-[#f7b928] text-[#06381b] flex items-center justify-center text-sm font-black shadow-sm">
+            <i class="fa-solid fa-door-open"></i>
+          </div>
+          <div>
+            <h3 id="modalTitle" class="text-sm font-bold text-white">Reserve FEU Facility</h3>
+            <p class="text-[11px] text-amber-200/90 font-medium">FEU Roosevelt Rodriguez Facility Entry</p>
+          </div>
+        </div>
+        <button id="btnCloseModal" class="text-emerald-200 hover:text-white transition p-1 text-base">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="reservationForm" class="p-5 space-y-3.5">
+        <input type="hidden" id="editBookingId">
+
+        <!-- Room Input with FEU specific locations -->
+        <div>
+          <label class="block text-xs font-bold text-[#06381b] uppercase tracking-wide mb-1">FEU Room / Venue *</label>
+          <div class="relative">
+            <input type="text" id="formRoom" list="roomSuggestions" required placeholder="e.g., Room 401, FEU Auditorium, Arts Building 302" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-[#f7b928] focus:border-[#0b4d26] outline-none transition font-semibold">
+            <datalist id="roomSuggestions">
+              <option value="Room 401">
+              <option value="Room 402">
+              <option value="FEU Auditorium">
+              <option value="Mini Auditorium (Engineering)">
+              <option value="Arts Building - Room 301">
+              <option value="Arts Building - Room 302">
+              <option value="Science Building Lab 102">
+              <option value="NRH Conference Room">
+              <option value="Tamaraw Multi-Purpose Gym">
+              <option value="Audio-Visual Room (AVR)">
+              <option value="SHS 301">
+              <option value="Room 406">
+              <option value="Open Area">
+            </datalist>
+          </div>
+        </div>
+
+        <!-- Date Input -->
+        <div>
+          <label class="block text-xs font-bold text-[#06381b] uppercase tracking-wide mb-1">Date *</label>
+          <input type="date" id="formDate" required class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-[#f7b928] focus:border-[#0b4d26] outline-none transition font-semibold">
+        </div>
+
+        <!-- Number of People (Pax) Input -->
+        <div>
+          <label class="block text-xs font-bold text-[#06381b] uppercase tracking-wide mb-1">Number of People (Pax) *</label>
+          <div class="relative">
+            <input type="number" id="formPeople" min="1" max="2000" required value="20" placeholder="e.g., 25" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 pl-8 pr-3 text-sm focus:ring-2 focus:ring-[#f7b928] focus:border-[#0b4d26] outline-none transition font-semibold">
+            <i class="fa-solid fa-users text-xs text-emerald-800 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+          </div>
+        </div>
+
+        <!-- Time Inputs -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-[#06381b] uppercase tracking-wide mb-1">Time Start *</label>
+            <input type="time" id="formTimeStart" required class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-[#f7b928] outline-none transition font-semibold">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-[#06381b] uppercase tracking-wide mb-1">Time End *</label>
+            <input type="time" id="formTimeEnd" required class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-[#f7b928] outline-none transition font-semibold">
+          </div>
+        </div>
+
+        <!-- Reason / Purpose -->
+        <div>
+          <label class="block text-xs font-bold text-[#06381b] uppercase tracking-wide mb-1">Reason / Purpose *</label>
+          <textarea id="formReason" rows="2" required placeholder="e.g., THEATER PRACTICE, Org General Assembly, Thesis Defense" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2 px-3 text-sm focus:ring-2 focus:ring-[#f7b928] outline-none transition font-normal"></textarea>
+        </div>
+
+        <!-- Inline Alert Banner -->
+        <div id="modalAlert" class="hidden p-3 rounded-xl text-xs bg-rose-50 border border-rose-300 text-rose-700 font-medium"></div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+          <button type="button" id="btnCancelModal" class="px-3.5 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 transition">
+            Cancel
+          </button>
+          <button type="submit" class="bg-[#0b4d26] hover:bg-[#06381b] text-[#f7b928] border border-[#f7b928] text-xs font-black px-4 py-2.5 rounded-xl transition shadow-md active:scale-95">
+            Save Reservation
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Modal for Deletions & Clear Actions -->
+  <div id="actionConfirmModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full p-5 border-2 border-slate-100 text-center">
+      <div id="confirmModalIconBg" class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3 text-lg border border-rose-200">
+        <i id="confirmModalIcon" class="fa-solid fa-trash-can"></i>
+      </div>
+      <h3 id="confirmModalTitle" class="text-sm font-bold text-slate-900 mb-1">Confirm Action</h3>
+      <p id="confirmModalDesc" class="text-xs text-slate-600 mb-5 font-normal">Are you sure you want to proceed?</p>
+      <div class="flex items-center gap-2">
+        <button id="btnCancelConfirm" type="button" class="w-1/2 py-2.5 text-xs font-bold rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 transition">
+          Cancel
+        </button>
+        <button id="btnProceedConfirm" type="button" class="w-1/2 py-2.5 text-xs font-black rounded-xl bg-rose-600 hover:bg-rose-700 text-white transition shadow-sm">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 bg-[#06381b] text-white border-2 border-[#f7b928] px-4 py-3 rounded-2xl shadow-2xl text-xs sm:text-sm flex items-center gap-2.5 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-[#f7b928] text-base"></i>
+    <span id="toastMsg" class="font-medium text-amber-50">Operation successful</span>
+  </div>
+
+  <!-- Firebase Cloud Sync & Core Application Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      collection, 
+      doc, 
+      setDoc, 
+      deleteDoc, 
+      onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    /* Constants */
+    const MONTHS = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    const DAYS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    /* Application State */
+    let currentYear = 2026;
+    let currentMonth = 9;   // October (0-indexed: 9 = October)
+    let selectedDay = 22;
+    let isExpanded = false;
+    let masterViewScope = 'month'; // 'month' or 'all'
+
+    // Confirmation modal callback
+    let pendingConfirmAction = null;
+
+    // Default Seed Data
+    const DEFAULT_RESERVATIONS = [
+      {
+        id: "RES-SAMPLE-01",
+        room: "SHS 301",
+        date: "2026-10-21",
+        people: 30,
+        timeStart: "09:30",
+        timeEnd: "10:00",
+        reason: "THEATER PRACTICE"
+      },
+      {
+        id: "RES-SAMPLE-02",
+        room: "Audio-Visual Room (AVR)",
+        date: "2026-10-22",
+        people: 30,
+        timeStart: "10:00",
+        timeEnd: "15:00",
+        reason: "THEATER PRACTICE"
+      },
+      {
+        id: "RES-SAMPLE-03",
+        room: "Room 401",
+        date: "2026-10-22",
+        people: 15,
+        timeStart: "10:00",
+        timeEnd: "11:00",
+        reason: "PRACTICE"
+      },
+      {
+        id: "RES-SAMPLE-04",
+        room: "Gym",
+        date: "2026-10-22",
+        people: 19,
+        timeStart: "14:00",
+        timeEnd: "17:00",
+        reason: "BADMINTON TRAINING GRADE 9"
+      },
+      {
+        id: "RES-SAMPLE-05",
+        room: "Open Area",
+        date: "2026-10-22",
+        people: 30,
+        timeStart: "15:00",
+        timeEnd: "17:00",
+        reason: "BASEBALL TRAINING"
+      },
+      {
+        id: "RES-SAMPLE-06",
+        room: "Room 406",
+        date: "2026-10-22",
+        people: 40,
+        timeStart: "16:00",
+        timeEnd: "17:00",
+        reason: "PETA THEATER PRACTICE"
+      },
+      {
+        id: "RES-SAMPLE-07",
+        room: "Gym",
+        date: "2026-10-23",
+        people: 20,
+        timeStart: "07:00",
+        timeEnd: "13:00",
+        reason: "CULMINATING ACTIVITY / AP HUMSS DEPT."
+      }
+    ];
+
+    // Main in-memory store
+    let reservations = [];
+    try {
+      const stored = localStorage.getItem('feu_tamaraw_room_reservations');
+      reservations = stored ? JSON.parse(stored) : DEFAULT_RESERVATIONS;
+    } catch(err) {
+      reservations = DEFAULT_RESERVATIONS;
+    }
+
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let cloudSyncActive = false;
+
+    // Use environment globals when available or fallback to local persistence
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'feu-roosevelt-scheduler';
+    let firebaseConfig = null;
+    if (typeof __firebase_config !== 'undefined') {
+      try {
+        firebaseConfig = JSON.parse(__firebase_config);
+      } catch (e) {
+        console.warn("Using local configuration");
+      }
+    }
+
+    function updateSyncBadge(status, text) {
+      const syncDot = document.getElementById('syncDot');
+      const syncText = document.getElementById('syncText');
+      if (!syncDot || !syncText) return;
+
+      if (status === 'connected') {
+        syncDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        syncText.textContent = text || "Cloud Live Sync";
+      } else if (status === 'syncing') {
+        syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-pulse";
+        syncText.textContent = text || "Syncing...";
+      } else {
+        syncDot.className = "w-2 h-2 rounded-full bg-slate-400";
+        syncText.textContent = text || "Local Offline Mode";
+      }
+    }
+
+    async function initFirebaseSync() {
+      if (!firebaseConfig) {
+        updateSyncBadge('local', 'Local Storage Active');
+        return;
+      }
+
+      try {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        // Authenticate first before any query
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        currentUser = auth.currentUser;
+        if (!currentUser) {
+          updateSyncBadge('local', 'Offline Mode');
+          return;
+        }
+
+        updateSyncBadge('connected', 'Cloud Live Sync');
+        cloudSyncActive = true;
+
+        // Listen for real-time changes across all connected devices
+        const reservationsRef = collection(db, 'artifacts', appId, 'public', 'data', 'reservations');
+        onSnapshot(reservationsRef, (snapshot) => {
+          if (!snapshot.empty) {
+            const cloudItems = [];
+            snapshot.forEach((d) => {
+              cloudItems.push({ id: d.id, ...d.data() });
+            });
+            reservations = cloudItems;
+            saveToLocalStorage();
+            renderDays();
+            if (isExpanded) renderExpandedDrawer();
+            renderMasterTable();
+          } else {
+            // First time cloud initialization: seed default items
+            DEFAULT_RESERVATIONS.forEach(async (r) => {
+              const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'reservations', r.id);
+              await setDoc(docRef, r);
+            });
+          }
+        }, (err) => {
+          console.error("Firestore sync error:", err);
+          updateSyncBadge('local', 'Sync Interrupted');
+        });
+
+      } catch (err) {
+        console.warn("Cloud sync unavailable, continuing in local mode:", err);
+        updateSyncBadge('local', 'Local Storage Active');
+      }
+    }
+
+    // Save helper that updates both Cloud and Local Storage
+    async function persistReservation(booking) {
+      saveToLocalStorage();
+      if (cloudSyncActive && db && currentUser) {
+        try {
+          updateSyncBadge('syncing', 'Saving to Cloud...');
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'reservations', booking.id);
+          await setDoc(docRef, booking);
+          updateSyncBadge('connected', 'Cloud Live Sync');
+        } catch (e) {
+          console.error("Cloud save failed:", e);
+          updateSyncBadge('connected', 'Cloud Live Sync');
+        }
+      }
+    }
+
+    async function removeCloudReservation(id) {
+      saveToLocalStorage();
+      if (cloudSyncActive && db && currentUser) {
+        try {
+          updateSyncBadge('syncing', 'Updating Cloud...');
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'reservations', id);
+          await deleteDoc(docRef);
+          updateSyncBadge('connected', 'Cloud Live Sync');
+        } catch (e) {
+          console.error("Cloud delete failed:", e);
+        }
+      }
+    }
+
+    function saveToLocalStorage() {
+      try {
+        localStorage.setItem('feu_tamaraw_room_reservations', JSON.stringify(reservations));
+      } catch (e) {
+        console.error("Local storage save error:", e);
+      }
+    }
+
+    function getDaysCount(year, monthIndex) {
+      return new Date(year, monthIndex + 1, 0).getDate();
+    }
+
+    function getDayOfWeek(year, monthIndex, day) {
+      const d = new Date(year, monthIndex, day);
+      return DAYS_SHORT[d.getDay()];
+    }
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function toISODate(year, monthIndex, day) {
+      return `${year}-${pad(monthIndex + 1)}-${pad(day)}`;
+    }
+
+    function formatTime12h(timeStr) {
+      if (!timeStr) return '';
+      const [h, m] = timeStr.split(':').map(Number);
+      const ampm = h >= 12 ? 'pm' : 'am';
+      const formattedH = h % 12 === 0 ? 12 : h % 12;
+      return `${formattedH}${m === 0 ? '' : ':' + pad(m)}${ampm}`;
+    }
+
+    function showToast(text, isError = false) {
+      const toast = document.getElementById('toast');
+      const msg = document.getElementById('toastMsg');
+      const icon = document.getElementById('toastIcon');
+
+      if (!toast || !msg || !icon) return;
+
+      msg.textContent = text;
+      icon.className = isError 
+        ? "fa-solid fa-circle-exclamation text-rose-400 text-base" 
+        : "fa-solid fa-circle-check text-[#f7b928] text-base";
+
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+        toast.classList.remove('translate-y-0', 'opacity-100');
+      }, 3000);
+    }
+
+    /* Modal Confirmation Handler */
+    function openConfirmModal({ title, desc, btnConfirmText, onConfirm }) {
+      const modal = document.getElementById('actionConfirmModal');
+      const titleElem = document.getElementById('confirmModalTitle');
+      const descElem = document.getElementById('confirmModalDesc');
+      const proceedBtn = document.getElementById('btnProceedConfirm');
+
+      if (titleElem) titleElem.textContent = title;
+      if (descElem) descElem.textContent = desc;
+      if (proceedBtn) proceedBtn.textContent = btnConfirmText || "Confirm";
+
+      pendingConfirmAction = onConfirm;
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      const modal = document.getElementById('actionConfirmModal');
+      if (modal) modal.classList.add('hidden');
+      pendingConfirmAction = null;
+    }
+
+    function setupDropdowns() {
+      const monthSel = document.getElementById('monthSelect');
+      const yearSel = document.getElementById('yearSelect');
+
+      if (!monthSel || !yearSel) return;
+
+      monthSel.innerHTML = '';
+      MONTHS.forEach((name, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = name;
+        if (idx === currentMonth) opt.selected = true;
+        monthSel.appendChild(opt);
+      });
+
+      yearSel.innerHTML = '';
+      for (let y = 2026; y <= 2100; y++) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = `A.Y. ${y}`;
+        if (y === currentYear) opt.selected = true;
+        yearSel.appendChild(opt);
+      }
+
+      monthSel.addEventListener('change', (e) => {
+        currentMonth = parseInt(e.target.value, 10);
+        handleDateConfigChange();
+      });
+
+      yearSel.addEventListener('change', (e) => {
+        currentYear = parseInt(e.target.value, 10);
+        handleDateConfigChange();
+      });
+    }
+
+    function handleDateConfigChange() {
+      const totalDays = getDaysCount(currentYear, currentMonth);
+      if (selectedDay > totalDays) {
+        selectedDay = totalDays;
+      }
+      const yearLabel = document.getElementById('statActiveYearLabel');
+      if (yearLabel) yearLabel.textContent = currentYear;
+
+      const scopeLabel = document.getElementById('labelCurrentMonthScope');
+      if (scopeLabel) {
+        scopeLabel.textContent = `${MONTHS[currentMonth]} ${currentYear}`;
+      }
+
+      renderDays();
+      if (isExpanded) {
+        renderExpandedDrawer();
+      }
+      renderMasterTable();
+    }
+
+    function renderDays() {
+      const tbody = document.getElementById('calendarGridBody');
+      const monthHeader = document.getElementById('calendarMonthHeader');
+      const totalDays = getDaysCount(currentYear, currentMonth);
+
+      if (monthHeader) {
+        monthHeader.innerHTML = `
+          <i class="fa-solid fa-calendar-days text-sm text-[#f7b928]"></i>
+          <span>${MONTHS[currentMonth]} ${currentYear}</span>
+        `;
+      }
+
+      const statDays = document.getElementById('statDaysCount');
+      if (statDays) statDays.textContent = totalDays;
+
+      const currentMonthPrefix = `${currentYear}-${pad(currentMonth + 1)}`;
+      const monthBookings = reservations.filter(r => r.date.startsWith(currentMonthPrefix));
+      const statBookings = document.getElementById('statMonthBookingsCount');
+      if (statBookings) statBookings.textContent = monthBookings.length;
+
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+      let currentDay = 1;
+      let finished = false;
+
+      while (!finished) {
+        const tr = document.createElement('tr');
+        tr.className = "divide-x divide-emerald-900/10";
+
+        for (let col = 0; col < 7; col++) {
+          const td = document.createElement('td');
+          td.className = "h-16 sm:h-20 p-1 align-top transition-colors border-b border-emerald-900/10";
+
+          if (currentDay === 1 && col < firstDayIndex) {
+            td.className += " bg-emerald-950/[0.03]";
+            tr.appendChild(td);
+            continue;
+          }
+
+          if (currentDay > totalDays) {
+            td.className += " bg-emerald-950/[0.03]";
+            tr.appendChild(td);
+            finished = true;
+            continue;
+          }
+
+          const dayNumber = currentDay;
+          const dateStr = toISODate(currentYear, currentMonth, dayNumber);
+          const dayBookings = reservations.filter(r => r.date === dateStr);
+          const hasBookings = dayBookings.length > 0;
+          const isCurrentSelected = (dayNumber === selectedDay && isExpanded);
+
+          const cellBtn = document.createElement('button');
+          cellBtn.type = "button";
+          cellBtn.className = "w-full h-full rounded-xl flex flex-col items-center justify-between p-1.5 transition-all select-none outline-none group ";
+
+          if (isCurrentSelected) {
+            cellBtn.className += "bg-[#0b4d26] text-white shadow-md ring-2 ring-[#f7b928] scale-[0.98]";
+          } else if (hasBookings) {
+            cellBtn.className += "bg-amber-50/90 hover:bg-amber-100/90 border border-[#f7b928] shadow-sm";
+          } else {
+            cellBtn.className += "hover:bg-emerald-50 hover:border-emerald-300/60 border border-transparent";
+          }
+
+          const numSpan = document.createElement('span');
+          numSpan.textContent = dayNumber;
+
+          if (isCurrentSelected) {
+            numSpan.className = "text-sm sm:text-base font-bold text-[#f7b928]";
+          } else if (col === 0) {
+            numSpan.className = "text-sm sm:text-base font-bold text-rose-600";
+          } else if (col === 6) {
+            numSpan.className = "text-sm sm:text-base font-semibold text-emerald-800/60";
+          } else {
+            numSpan.className = "text-sm sm:text-base font-semibold text-slate-800 group-hover:text-[#0b4d26]";
+          }
+
+          cellBtn.appendChild(numSpan);
+
+          const statusSpan = document.createElement('span');
+          if (hasBookings) {
+            statusSpan.className = isCurrentSelected
+              ? "text-[9px] font-bold text-[#06381b] bg-[#f7b928] px-2 py-0.5 rounded-full shadow-sm"
+              : "text-[9px] font-bold text-[#06381b] bg-[#f7b928] px-1.5 py-0.5 rounded-md border border-amber-400";
+            statusSpan.textContent = `${dayBookings.length} res`;
+          } else {
+            statusSpan.className = isCurrentSelected 
+              ? "text-[9px] font-medium text-emerald-200" 
+              : "text-[9px] font-medium text-emerald-800/40 group-hover:text-emerald-700";
+            statusSpan.textContent = "open";
+          }
+          cellBtn.appendChild(statusSpan);
+
+          cellBtn.addEventListener('click', () => {
+            expandDate(dayNumber);
+          });
+
+          td.appendChild(cellBtn);
+          tr.appendChild(td);
+
+          currentDay++;
+        }
+
+        tbody.appendChild(tr);
+
+        if (currentDay > totalDays) {
+          finished = true;
+        }
+      }
+    }
+
+    function expandDate(day) {
+      selectedDay = day;
+      isExpanded = true;
+      renderDays();
+      renderExpandedDrawer();
+
+      const drawer = document.getElementById('expandedDrawer');
+      if (drawer) {
+        drawer.classList.remove('hidden');
+        drawer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function collapseDrawer() {
+      isExpanded = false;
+      const drawer = document.getElementById('expandedDrawer');
+      if (drawer) drawer.classList.add('hidden');
+      renderDays();
+      const section = document.getElementById('daysSection');
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderExpandedDrawer() {
+      const displayTitle = document.getElementById('expandedDateDisplay');
+      const headerDate = document.getElementById('expandedSheetDateHeader');
+      const tbody = document.getElementById('expandedTableBody');
+
+      const dateStr = toISODate(currentYear, currentMonth, selectedDay);
+      const dayOfWeekStr = getDayOfWeek(currentYear, currentMonth, selectedDay);
+      
+      if (displayTitle) {
+        displayTitle.textContent = `${MONTHS[currentMonth]} ${selectedDay}, ${currentYear} (${dayOfWeekStr})`;
+      }
+      
+      const shortDateDisplay = `${pad(currentMonth + 1)}/${pad(selectedDay)}/${String(currentYear).slice(-2)}`;
+      if (headerDate) {
+        headerDate.textContent = `DATE: ${shortDateDisplay} (${dayOfWeekStr.toUpperCase()})`;
+      }
+
+      if (!tbody) return;
+
+      const dayBookings = reservations.filter(r => r.date === dateStr);
+      dayBookings.sort((a, b) => a.timeStart.localeCompare(b.timeStart));
+
+      tbody.innerHTML = '';
+      const rowCount = Math.max(5, dayBookings.length);
+
+      for (let i = 0; i < rowCount; i++) {
+        const item = dayBookings[i];
+        const rowNum = i + 1;
+        const tr = document.createElement('tr');
+
+        if (item) {
+          tr.className = "hover:bg-rose-50/60 transition border-b border-emerald-100 bg-white group";
+          tr.innerHTML = `
+            <td class="py-3 px-3 text-center font-medium text-slate-500 bg-slate-50 border-r border-emerald-100">${rowNum}</td>
+            <td class="py-3 px-4 font-semibold text-rose-700 border-r border-emerald-100">
+              <i class="fa-solid fa-door-closed text-rose-400 mr-1 text-xs"></i> ${item.room}
+            </td>
+            <td class="py-3 px-3 text-center border-r border-emerald-100 whitespace-nowrap">
+              <span class="inline-flex items-center gap-1 bg-amber-100/80 text-[#06381b] border border-amber-300 px-2 py-0.5 rounded-full text-[11px] font-bold font-sans">
+                <i class="fa-solid fa-users text-[10px] text-emerald-800"></i> ${item.people || 1} pax
+              </span>
+            </td>
+            <td class="py-3 px-4 font-medium text-rose-700 border-r border-emerald-100 whitespace-nowrap">
+              ${formatTime12h(item.timeStart)}-${formatTime12h(item.timeEnd)}
+            </td>
+            <td class="py-3 px-4 font-medium text-rose-700 border-r border-emerald-100 whitespace-nowrap">
+              ${shortDateDisplay}
+            </td>
+            <td class="py-3 px-4 font-medium text-rose-700 border-r border-emerald-100 uppercase">
+              ${item.reason}
+            </td>
+            <td class="py-3 px-3 text-center whitespace-nowrap">
+              <button onclick="openEditModal('${item.id}')" title="Edit" class="text-slate-400 hover:text-[#0b4d26] px-1.5 py-1 transition font-sans">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button onclick="requestDelete('${item.id}')" title="Delete" class="text-slate-400 hover:text-rose-600 px-1.5 py-1 transition font-sans">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </td>
+          `;
+        } else {
+          tr.className = "hover:bg-emerald-50/50 transition cursor-pointer border-b border-emerald-100 text-slate-400";
+          tr.innerHTML = `
+            <td class="py-3 px-3 text-center font-normal bg-slate-50 border-r border-emerald-100 text-slate-400">${rowNum}</td>
+            <td class="py-3 px-4 border-r border-emerald-100 italic text-slate-400 font-sans">[ Available FEU Venue ]</td>
+            <td class="py-3 px-3 text-center border-r border-emerald-100 text-slate-300 font-sans">--</td>
+            <td class="py-3 px-4 border-r border-emerald-100 text-slate-300">-- : --</td>
+            <td class="py-3 px-4 border-r border-emerald-100 text-slate-400 font-normal">${shortDateDisplay}</td>
+            <td class="py-3 px-4 border-r border-emerald-100 text-slate-300 italic font-sans">Open slot</td>
+            <td class="py-3 px-3 text-center">
+              <button onclick="openAddModalForDay('${dateStr}')" class="text-xs text-[#0b4d26] hover:text-emerald-700 font-sans font-semibold underline">
+                + Book Row
+              </button>
+            </td>
+          `;
+          tr.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) {
+              openAddModalForDay(dateStr);
+            }
+          });
+        }
+
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderMasterTable() {
+      const tbody = document.getElementById('masterTableBody');
+      const searchInput = document.getElementById('allBookingsSearch');
+      const clearSearchBtn = document.getElementById('btnClearSearch');
+      const search = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+      if (clearSearchBtn) {
+        if (search) {
+          clearSearchBtn.classList.remove('hidden');
+        } else {
+          clearSearchBtn.classList.add('hidden');
+        }
+      }
+
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const monthPrefix = `${currentYear}-${pad(currentMonth + 1)}`;
+      
+      // Filter by Month Scope and Search query
+      const filtered = reservations.filter(r => {
+        if (masterViewScope === 'month' && !r.date.startsWith(monthPrefix)) {
+          return false;
+        }
+
+        if (!search) return true;
+        const dateObj = new Date(r.date + "T00:00:00");
+        const dayName = !isNaN(dateObj) ? DAYS_SHORT[dateObj.getDay()].toLowerCase() : "";
+        return (
+          r.room.toLowerCase().includes(search) ||
+          r.date.toLowerCase().includes(search) ||
+          r.reason.toLowerCase().includes(search) ||
+          dayName.includes(search) ||
+          String(r.people || '').includes(search)
+        );
+      });
+
+      filtered.sort((a, b) => a.date.localeCompare(b.date) || a.timeStart.localeCompare(b.timeStart));
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-8 text-slate-400 italic font-sans font-normal">
+              ${search ? `No reserved rooms found matching "<span class="font-bold text-slate-600">${search}</span>".` : (masterViewScope === 'month' ? `No reservations found for ${MONTHS[currentMonth]} ${currentYear}. Switch to "All Records" or add a new schedule.` : "No reservations recorded yet.")}
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.forEach((r, idx) => {
+        const [y, m, d] = r.date.split('-').map(Number);
+        const dayName = getDayOfWeek(y, m - 1, d);
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-amber-50/40 transition border-b border-slate-100 font-mono";
+        
+        let roomDisplay = r.room;
+        if (search && r.room.toLowerCase().includes(search)) {
+          roomDisplay = `<mark class="bg-amber-200 text-[#06381b] px-1 py-0.5 rounded font-black">${r.room}</mark>`;
+        }
+        
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 text-center text-slate-400 font-normal">${idx + 1}</td>
+          <td class="py-2.5 px-4 font-semibold text-[#06381b]">
+            <span class="inline-flex items-center gap-1.5 cursor-pointer hover:underline text-rose-700 font-bold" onclick="jumpToDate('${r.date}')" title="Click to view day sheet">
+              <i class="fa-solid fa-door-open text-xs text-amber-500"></i> ${roomDisplay}
+            </span>
+          </td>
+          <td class="py-2.5 px-3 text-center whitespace-nowrap">
+            <span class="inline-flex items-center gap-1 bg-emerald-50 text-[#0b4d26] border border-emerald-200 px-2 py-0.5 rounded-full text-xs font-bold font-sans">
+              <i class="fa-solid fa-users text-[10px]"></i> ${r.people || 1}
+            </span>
+          </td>
+          <td class="py-2.5 px-4 text-slate-600 font-normal whitespace-nowrap">
+            <span class="bg-slate-100 text-slate-700 font-bold px-1.5 py-0.5 rounded text-[10px] mr-1">${dayName}</span> ${r.date}
+          </td>
+          <td class="py-2.5 px-4 text-slate-700 font-medium whitespace-nowrap">${formatTime12h(r.timeStart)} - ${formatTime12h(r.timeEnd)}</td>
+          <td class="py-2.5 px-4 text-slate-800 font-sans font-normal uppercase text-xs">${r.reason}</td>
+          <td class="py-2.5 px-3 text-center whitespace-nowrap">
+            <button onclick="jumpToDate('${r.date}')" title="Jump to Date" class="text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded-lg text-xs font-sans font-bold transition mr-1">
+              View Day
+            </button>
+            <button onclick="openEditModal('${r.id}')" title="Edit" class="text-slate-400 hover:text-[#0b4d26] px-1 py-0.5">
+              <i class="fa-solid fa-pen text-xs"></i>
+            </button>
+            <button onclick="requestDelete('${r.id}')" title="Delete" class="text-slate-400 hover:text-rose-600 px-1 py-0.5 ml-1">
+              <i class="fa-solid fa-trash text-xs"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function quickFilterRoom(roomQuery) {
+      const searchInput = document.getElementById('allBookingsSearch');
+      if (searchInput) searchInput.value = roomQuery;
+      
+      document.querySelectorAll('.room-pill').forEach(btn => {
+        if ((roomQuery === '' && btn.textContent === 'All Rooms') || (roomQuery !== '' && btn.textContent.toLowerCase().includes(roomQuery.toLowerCase()))) {
+          btn.className = "room-pill px-2.5 py-1 rounded-lg bg-emerald-900 text-[#f7b928] font-bold text-[11px] border border-emerald-800 transition active:scale-95 shadow-sm";
+        } else {
+          btn.className = "room-pill px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 font-semibold text-[11px] border border-slate-200 transition active:scale-95";
+        }
+      });
+
+      renderMasterTable();
+    }
+    window.quickFilterRoom = quickFilterRoom;
+
+    function jumpToDate(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      currentYear = y;
+      currentMonth = m - 1;
+      selectedDay = d;
+
+      const yearSel = document.getElementById('yearSelect');
+      const monthSel = document.getElementById('monthSelect');
+      const yearLabel = document.getElementById('statActiveYearLabel');
+
+      if (yearSel) yearSel.value = currentYear;
+      if (monthSel) monthSel.value = currentMonth;
+      if (yearLabel) yearLabel.textContent = currentYear;
+
+      expandDate(d);
+    }
+    window.jumpToDate = jumpToDate;
+
+    const bookingModal = document.getElementById('bookingModal');
+    const reservationForm = document.getElementById('reservationForm');
+    const modalAlert = document.getElementById('modalAlert');
+
+    function openAddModalForDay(dateStr) {
+      const modalTitle = document.getElementById('modalTitle');
+      const editId = document.getElementById('editBookingId');
+      
+      if (modalTitle) modalTitle.textContent = "Reserve FEU Facility";
+      if (editId) editId.value = "";
+      if (reservationForm) reservationForm.reset();
+      if (modalAlert) modalAlert.classList.add('hidden');
+
+      const formDate = document.getElementById('formDate');
+      const formPeople = document.getElementById('formPeople');
+      const formTimeStart = document.getElementById('formTimeStart');
+      const formTimeEnd = document.getElementById('formTimeEnd');
+
+      if (formDate) formDate.value = dateStr;
+      if (formPeople) formPeople.value = "20";
+      if (formTimeStart) formTimeStart.value = "10:00";
+      if (formTimeEnd) formTimeEnd.value = "11:00";
+
+      if (bookingModal) bookingModal.classList.remove('hidden');
+    }
+
+    function openEditModal(id) {
+      const item = reservations.find(r => r.id === id);
+      if (!item) return;
+
+      const modalTitle = document.getElementById('modalTitle');
+      const editId = document.getElementById('editBookingId');
+      const formRoom = document.getElementById('formRoom');
+      const formDate = document.getElementById('formDate');
+      const formPeople = document.getElementById('formPeople');
+      const formTimeStart = document.getElementById('formTimeStart');
+      const formTimeEnd = document.getElementById('formTimeEnd');
+      const formReason = document.getElementById('formReason');
+
+      if (modalTitle) modalTitle.textContent = "Edit Reservation";
+      if (editId) editId.value = item.id;
+      if (formRoom) formRoom.value = item.room;
+      if (formDate) formDate.value = item.date;
+      if (formPeople) formPeople.value = item.people || 1;
+      if (formTimeStart) formTimeStart.value = item.timeStart;
+      if (formTimeEnd) formTimeEnd.value = item.timeEnd;
+      if (formReason) formReason.value = item.reason;
+
+      if (modalAlert) modalAlert.classList.add('hidden');
+      if (bookingModal) bookingModal.classList.remove('hidden');
+    }
+    window.openEditModal = openEditModal;
+    window.openAddModalForDay = openAddModalForDay;
+
+    function closeModal() {
+      if (bookingModal) bookingModal.classList.add('hidden');
+      if (modalAlert) modalAlert.classList.add('hidden');
+    }
+
+    function hasConflict(room, date, timeStart, timeEnd, excludeId = null) {
+      return reservations.some(r => {
+        if (excludeId && r.id === excludeId) return false;
+        if (r.room.toLowerCase() !== room.toLowerCase() || r.date !== date) return false;
+        return (timeStart < r.timeEnd && timeEnd > r.timeStart);
+      });
+    }
+
+    if (reservationForm) {
+      reservationForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const editId = document.getElementById('editBookingId').value;
+        const room = document.getElementById('formRoom').value.trim();
+        const date = document.getElementById('formDate').value;
+        const people = parseInt(document.getElementById('formPeople').value, 10) || 1;
+        const timeStart = document.getElementById('formTimeStart').value;
+        const timeEnd = document.getElementById('formTimeEnd').value;
+        const reason = document.getElementById('formReason').value.trim();
+
+        if (timeStart >= timeEnd) {
+          if (modalAlert) {
+            modalAlert.textContent = "Start time must be earlier than the end time.";
+            modalAlert.classList.remove('hidden');
+          }
+          return;
+        }
+
+        if (hasConflict(room, date, timeStart, timeEnd, editId)) {
+          if (modalAlert) {
+            modalAlert.textContent = `Schedule conflict: ${room} is already booked between ${timeStart} and ${timeEnd}. Please pick a different slot.`;
+            modalAlert.classList.remove('hidden');
+          }
+          return;
+        }
+
+        let recordToSave;
+        if (editId) {
+          const idx = reservations.findIndex(r => r.id === editId);
+          recordToSave = { id: editId, room, date, people, timeStart, timeEnd, reason };
+          if (idx !== -1) {
+            reservations[idx] = recordToSave;
+            showToast(`Updated reservation for ${room} (${people} pax)`);
+          }
+        } else {
+          recordToSave = {
+            id: "FEU-" + Date.now().toString().slice(-6),
+            room,
+            date,
+            people,
+            timeStart,
+            timeEnd,
+            reason
+          };
+          reservations.push(recordToSave);
+          showToast(`Saved reservation for ${room} (${people} pax)`);
+        }
+
+        // Persist to Cloud & Local Storage
+        await persistReservation(recordToSave);
+
+        const [y, m, d] = date.split('-').map(Number);
+        currentYear = y;
+        currentMonth = m - 1;
+        selectedDay = d;
+
+        const yearSel = document.getElementById('yearSelect');
+        const monthSel = document.getElementById('monthSelect');
+        const yearLabel = document.getElementById('statActiveYearLabel');
+
+        if (yearSel) yearSel.value = currentYear;
+        if (monthSel) monthSel.value = currentMonth;
+        if (yearLabel) yearLabel.textContent = currentYear;
+
+        closeModal();
+        renderDays();
+        if (isExpanded) {
+          renderExpandedDrawer();
+        }
+        renderMasterTable();
+      });
+    }
+
+    function requestDelete(id) {
+      const item = reservations.find(r => r.id === id);
+      if (!item) return;
+
+      openConfirmModal({
+        title: "Delete Reservation?",
+        desc: `Remove reservation for ${item.room} on ${item.date}?`,
+        btnConfirmText: "Delete",
+        onConfirm: async () => {
+          reservations = reservations.filter(r => r.id !== id);
+          await removeCloudReservation(id);
+          renderDays();
+          if (isExpanded) renderExpandedDrawer();
+          renderMasterTable();
+          showToast(`Reservation removed.`);
+        }
+      });
+    }
+    window.requestDelete = requestDelete;
+
+    function clearMonthReservations() {
+      const monthPrefix = `${currentYear}-${pad(currentMonth + 1)}`;
+      const monthName = MONTHS[currentMonth];
+      const monthItems = reservations.filter(r => r.date.startsWith(monthPrefix));
+
+      if (monthItems.length === 0) {
+        showToast(`No bookings found in ${monthName} ${currentYear}.`, true);
+        return;
+      }
+
+      openConfirmModal({
+        title: `Clear All in ${monthName} ${currentYear}?`,
+        desc: `This will permanently delete all ${monthItems.length} room reservation(s) scheduled in ${monthName} ${currentYear}.`,
+        btnConfirmText: "Clear This Month",
+        onConfirm: async () => {
+          for (const item of monthItems) {
+            await removeCloudReservation(item.id);
+          }
+          reservations = reservations.filter(r => !r.date.startsWith(monthPrefix));
+          saveToLocalStorage();
+          renderDays();
+          if (isExpanded) renderExpandedDrawer();
+          renderMasterTable();
+          showToast(`Cleared ${monthItems.length} reservation(s) in ${monthName} ${currentYear}.`);
+        }
+      });
+    }
+
+    function clearDayReservations() {
+      const dateStr = toISODate(currentYear, currentMonth, selectedDay);
+      const dayItems = reservations.filter(r => r.date === dateStr);
+
+      if (dayItems.length === 0) {
+        showToast(`No bookings to clear on this day.`, true);
+        return;
+      }
+
+      openConfirmModal({
+        title: `Clear Date ${dateStr}?`,
+        desc: `Remove all ${dayItems.length} room reservation(s) for this day?`,
+        btnConfirmText: "Clear Day",
+        onConfirm: async () => {
+          for (const item of dayItems) {
+            await removeCloudReservation(item.id);
+          }
+          reservations = reservations.filter(r => r.date !== dateStr);
+          saveToLocalStorage();
+          renderDays();
+          renderExpandedDrawer();
+          renderMasterTable();
+          showToast(`Cleared all reservations for ${dateStr}.`);
+        }
+      });
+    }
+
+    function clearAllReservations() {
+      if (reservations.length === 0) {
+        showToast("Schedule is already empty.", true);
+        return;
+      }
+
+      openConfirmModal({
+        title: "Reset All University Records?",
+        desc: `Are you sure you want to delete all ${reservations.length} reservation records across all years?`,
+        btnConfirmText: "Reset All",
+        onConfirm: async () => {
+          const allItems = [...reservations];
+          for (const item of allItems) {
+            await removeCloudReservation(item.id);
+          }
+          reservations = [];
+          saveToLocalStorage();
+          renderDays();
+          if (isExpanded) renderExpandedDrawer();
+          renderMasterTable();
+          showToast("All reservations have been cleared.");
+        }
+      });
+    }
+
+    /* Backup Download Feature */
+    function backupData() {
+      if (reservations.length === 0) {
+        showToast("No reservation data to backup yet.", true);
+        return;
+      }
+
+      try {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reservations, null, 2));
+        const downloadAnchor = document.createElement('a');
+        const timestamp = new Date().toISOString().slice(0, 10);
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `FEU_Roosevelt_Reservations_Backup_${timestamp}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        showToast(`Backup downloaded (${reservations.length} reservations).`);
+      } catch (err) {
+        console.error("Backup error:", err);
+        showToast("Failed to create backup.", true);
+      }
+    }
+
+    /* Restore from File */
+    function restoreDataFromFile(file) {
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!Array.isArray(imported)) {
+            showToast("Invalid backup file format.", true);
+            return;
+          }
+
+          openConfirmModal({
+            title: "Restore Reservations?",
+            desc: `Found ${imported.length} reservation(s) in backup file. This will replace or merge with your records. Proceed?`,
+            btnConfirmText: "Restore Data",
+            onConfirm: async () => {
+              const restoredList = imported.map(r => ({
+                id: r.id || ("FEU-" + Date.now().toString().slice(-6)),
+                room: r.room || "Room",
+                date: r.date,
+                people: Number(r.people) || 1,
+                timeStart: r.timeStart,
+                timeEnd: r.timeEnd,
+                reason: r.reason || ""
+              }));
+
+              reservations = restoredList;
+              saveToLocalStorage();
+
+              for (const item of restoredList) {
+                await persistReservation(item);
+              }
+
+              renderDays();
+              if (isExpanded) renderExpandedDrawer();
+              renderMasterTable();
+              showToast(`Restored ${restoredList.length} reservations successfully!`);
+            }
+          });
+        } catch (err) {
+          console.error("Restore parsing error:", err);
+          showToast("Could not read backup file.", true);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Connect confirmation modal buttons
+      const btnCancelConfirm = document.getElementById('btnCancelConfirm');
+      const btnProceedConfirm = document.getElementById('btnProceedConfirm');
+      if (btnCancelConfirm) btnCancelConfirm.addEventListener('click', closeConfirmModal);
+      if (btnProceedConfirm) {
+        btnProceedConfirm.addEventListener('click', () => {
+          if (typeof pendingConfirmAction === 'function') {
+            pendingConfirmAction();
+          }
+          closeConfirmModal();
+        });
+      }
+
+      // Initialize dropdowns and date grid
+      setupDropdowns();
+      handleDateConfigChange();
+
+      // Expand default Oct 22, 2026 to mirror sketch
+      expandDate(22);
+
+      // Back button in drawer
+      const btnBackToDays = document.getElementById('btnBackToDays');
+      if (btnBackToDays) btnBackToDays.addEventListener('click', collapseDrawer);
+
+      // Master Log Scope Switcher (This Month vs All Records)
+      const btnScopeMonth = document.getElementById('btnScopeMonth');
+      const btnScopeAll = document.getElementById('btnScopeAll');
+      if (btnScopeMonth && btnScopeAll) {
+        btnScopeMonth.addEventListener('click', () => {
+          masterViewScope = 'month';
+          btnScopeMonth.className = "px-2.5 py-1 text-xs font-bold rounded-lg transition bg-white text-[#06381b] shadow-sm";
+          btnScopeAll.className = "px-2.5 py-1 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-800";
+          renderMasterTable();
+        });
+
+        btnScopeAll.addEventListener('click', () => {
+          masterViewScope = 'all';
+          btnScopeAll.className = "px-2.5 py-1 text-xs font-bold rounded-lg transition bg-white text-[#06381b] shadow-sm";
+          btnScopeMonth.className = "px-2.5 py-1 text-xs font-bold rounded-lg transition text-slate-500 hover:text-slate-800";
+          renderMasterTable();
+        });
+      }
+
+      // Backup & Restore
+      const btnBackupData = document.getElementById('btnBackupData');
+      const btnRestoreData = document.getElementById('btnRestoreData');
+      const backupFileInput = document.getElementById('backupFileInput');
+
+      if (btnBackupData) {
+        btnBackupData.addEventListener('click', backupData);
+      }
+      if (btnRestoreData && backupFileInput) {
+        btnRestoreData.addEventListener('click', () => {
+          backupFileInput.value = '';
+          backupFileInput.click();
+        });
+      }
+      if (backupFileInput) {
+        backupFileInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files[0]) {
+            restoreDataFromFile(e.target.files[0]);
+          }
+        });
+      }
+
+      // Drawer add reservation
+      const btnAddRowBtn = document.getElementById('btnAddRowBtn');
+      if (btnAddRowBtn) {
+        btnAddRowBtn.addEventListener('click', () => {
+          const dateStr = toISODate(currentYear, currentMonth, selectedDay);
+          openAddModalForDay(dateStr);
+        });
+      }
+
+      // Header quick add
+      const btnQuickAddSchedule = document.getElementById('btnQuickAddSchedule');
+      if (btnQuickAddSchedule) {
+        btnQuickAddSchedule.addEventListener('click', () => {
+          const dateStr = toISODate(currentYear, currentMonth, selectedDay);
+          openAddModalForDay(dateStr);
+        });
+      }
+
+      // Deletion actions
+      const btnClearMonthBtn = document.getElementById('btnClearMonthBtn');
+      if (btnClearMonthBtn) btnClearMonthBtn.addEventListener('click', clearMonthReservations);
+
+      const btnClearDayBtn = document.getElementById('btnClearDayBtn');
+      if (btnClearDayBtn) btnClearDayBtn.addEventListener('click', clearDayReservations);
+
+      const btnClearAllBtn = document.getElementById('btnClearAllBtn');
+      if (btnClearAllBtn) btnClearAllBtn.addEventListener('click', clearAllReservations);
+
+      // Modal controls
+      const btnCloseModal = document.getElementById('btnCloseModal');
+      const btnCancelModal = document.getElementById('btnCancelModal');
+      if (btnCloseModal) btnCloseModal.addEventListener('click', closeModal);
+      if (btnCancelModal) btnCancelModal.addEventListener('click', closeModal);
+      if (bookingModal) {
+        bookingModal.addEventListener('click', (e) => {
+          if (e.target === bookingModal) closeModal();
+        });
+      }
+
+      // Search bar
+      const searchInput = document.getElementById('allBookingsSearch');
+      const clearSearchBtn = document.getElementById('btnClearSearch');
+
+      if (searchInput) {
+        searchInput.addEventListener('input', renderMasterTable);
+      }
+      if (clearSearchBtn && searchInput) {
+        clearSearchBtn.addEventListener('click', () => {
+          searchInput.value = '';
+          renderMasterTable();
+        });
+      }
+
+      // Start Cloud sync
+      initFirebaseSync();
+    });
+  </script>
+</body>
+</html>
